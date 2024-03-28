@@ -29,14 +29,59 @@
     </div>
 
 <script>
-  const msg = new SpeechSynthesisUtterance();
-  let voices = [];
-  const voicesDropdown = document.querySelector('[name="voice"]');
-  const options = document.querySelectorAll('[type="range"], [name="text"]');
-  const speakButton = document.querySelector('#speak');
-  const stopButton = document.querySelector('#stop');
+    const message = document.getElementById('message');
+    const startBtn = document.getElementById('start');
+    const stopBtn = document.getElementById('stop');
+    const voiceSelect = document.getElementById('voices');
+    const rateBtn = document.getElementById('rate');
+    const pitchBtn = document.getElementById('pitch');
 
-  //Your code goes here
+    let voices = [];
+    let speechSynthesis = window.speechSynthesis;
+    let speaking = false;
+
+    function populateVoices() {
+        voices = speechSynthesis.getVoices();
+        voices.forEach(voice => {
+            const option = document.createElement('option');
+            option.textContent = voice.name + ' (' + voice.lang + ')';
+            option.setAttribute('data-lang', voice.lang);
+            option.setAttribute('data-name', voice.name);
+            voiceSelect.appendChild(option);
+        });
+    }
+
+    populateVoices();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = populateVoices;
+    }
+
+    function speak() {
+        if (!speaking && message.value !== '') {
+            const msg = new SpeechSynthesisUtterance(message.value);
+            const selectedVoice = voiceSelect.selectedOptions[0].getAttribute('data-name');
+            voices.forEach(voice => {
+                if (voice.name === selectedVoice) {
+                    msg.voice = voice;
+                }
+            });
+            msg.rate = parseFloat(rateBtn.value);
+            msg.pitch = parseFloat(pitchBtn.value);
+
+            speechSynthesis.speak(msg);
+            speaking = true;
+        }
+    }
+
+    function stop() {
+        if (speaking) {
+            speechSynthesis.cancel();
+            speaking = false;
+        }
+    }
+
+    startBtn.addEventListener('click', speak);
+    stopBtn.addEventListener('click', stop);
 </script>
 
 </body>
